@@ -101,3 +101,23 @@ export function increaseMessagebusTopicReads(topic: string) {
         topic,
     })
 }
+
+const workspaceRequestsCounter = new prometheusClient.Counter({
+    name: 'gitpod_server_workspace_requests_total',
+    help: 'Total amount of requests for new workspaces.',
+    registers: [prometheusClient.register]
+});
+
+export function increaseWorkspaceRequestsCounter() {
+    workspaceRequestsCounter.inc();
+}
+
+const workspaceFailedCounter = new prometheusClient.Counter({
+    name: 'gitpod_server_workspace_creation_failed_total',
+    help: 'Total amount of workspaces requests that failed prior to getting into k8s API server.',
+    registers: [prometheusClient.register]
+});
+
+export function increaseWorkspaceFailedCounter() {
+    workspaceFailedCounter.inc();
+}

@@ -52,6 +52,7 @@ import { HeadlessLogUrls } from "@gitpod/gitpod-protocol/lib/headless-workspace-
 import { HeadlessLogService } from "./headless-log-service";
 import { InvalidGitpodYMLError } from "./config-provider";
 import { ProjectsService } from "../projects/projects-service";
+import { increaseWorkspaceFailedCounter, increaseWorkspaceRequestsCounter } from '../../src/prometheus-metrics';
 
 @injectable()
 export class GitpodServerImpl<Client extends GitpodClient, Server extends GitpodServer> implements GitpodServer, Disposable {
@@ -783,6 +784,7 @@ export class GitpodServerImpl<Client extends GitpodClient, Server extends Gitpod
         const mode = options.mode || CreateWorkspaceMode.Default;
         let normalizedContextUrl: string = "";
         let logContext: LogContext = {};
+        increaseWorkspaceRequestsCounter();
 
         const span = opentracing.globalTracer().startSpan("createWorkspace");
         span.setTag("contextUrl", contextUrl);
@@ -870,6 +872,7 @@ export class GitpodServerImpl<Client extends GitpodClient, Server extends Gitpod
                 createdWorkspaceId: workspace.id
             };
         } catch (error) {
+            increaseWorkspaceFailedCounter()
             if (NotFoundError.is(error)) {
                 throw new ResponseError(ErrorCodes.NOT_FOUND, "Repository not found.", error.data);
             }

@@ -8,5 +8,5 @@ spec:
   renewBefore: 24h
   dnsNames: ${cert_dns_names}
   issuerRef:
-    name: letsencrypt-issuer
+    name: letsencrypt-issuer-core-dev
     kind: ClusterIssuer

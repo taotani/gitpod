@@ -226,8 +226,8 @@ export async function build(context, version) {
     }
 
     const destname = version.split(".")[0];
-    const namespace = `staging-${destname}`;
-    const domain = `${destname}.staging.gitpod-dev.com`;
+    const namespace = `preview-${destname}`;
+    const domain = `${destname}.preview.gitpod-dev.com`;
     const url = `https://${domain}`;
     const deploymentConfig = {
         version,

@@ -541,7 +541,7 @@ export async function deployToDev(deploymentConfig: DeploymentConfig, workspaceF
         metaClusterCertParams.gcpSaPath = GCLOUD_SERVICE_ACCOUNT_PATH;
         metaClusterCertParams.namespace = namespace;
         metaClusterCertParams.certNamespace = "certs";
-        metaClusterCertParams.dnsZoneDomain = "gitpod-dev.com";
+        metaClusterCertParams.dnsZoneDomain = "preview.gitpod-dev.com";
         metaClusterCertParams.domain = domain;
         metaClusterCertParams.ip = getCoreDevIngressIP();
         metaClusterCertParams.pathToKubeConfig = "";

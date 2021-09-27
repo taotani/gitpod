@@ -8,6 +8,7 @@ import (
 	"github.com/gitpod-io/gitpod/gitpod-cli/cmd"
 )
 
+// TEST
 func main() {
 	cmd.Execute()
 }

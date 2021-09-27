@@ -11,7 +11,7 @@ WORKDIR /plugins
 
 COPY plugins /plugins
 
-# build caddy
+# build caddy test
 RUN xcaddy build v2.4.5 \
   --output /caddy \
   --with github.com/gitpod-io/gitpod/proxy/plugins/corsorigin=/plugins/corsorigin \

@@ -54,6 +54,7 @@ export async function installMonitoringSatellite(params: InstallMonitoringSatell
     exec(jsonnetRenderCmd, {silent: true})
     // The correct kubectl context should already be configured prior to this step
     ensureCorrectInstallationOrder()
+    ensureIngressesReadiness(params)
 }
 
 async function ensureCorrectInstallationOrder(){
@@ -140,4 +141,28 @@ https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/`
         werft.log(sliceName, failedMessage)
     }
     return success
+}
+
+function ensureIngressesReadiness(params: InstallMonitoringSatelliteParams) {
+    // Read more about validating ingresses readiness
+    // https://cloud.google.com/kubernetes-engine/docs/how-to/internal-load-balance-ingress?hl=it#validate
+
+    let ingressesReady = false
+    for(let i = 0; i < 15; i++) {
+        werft.log(sliceName, "Checking ingresses readiness")
+        ingressesReady = ingressReady(params.satelliteNamespace, 'grafana') && ingressReady(params.satelliteNamespace, 'prometheus')
+
+        if(ingressesReady) { break }
+        exec('sleep 60')
+        i++
+    }
+}
+
+function ingressReady(namespace: string, name: string): boolean {
+    let ingressAddress = exec(`kubectl get ingress -n ${namespace} --no-headers ${name} | awk {'print $4'}`).stdout.trim()
+    if (ingressAddress != "-") {
+        return true
+    }
+    werft.log(sliceName, `${name} ingress not ready.`)
+    return false
 }

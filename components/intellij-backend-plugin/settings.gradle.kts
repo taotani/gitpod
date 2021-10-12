@@ -5,7 +5,9 @@
 rootProject.name = "gitpod-backend-plugin"
 
 include(":supervisor-api")
-project(":supervisor-api").projectDir = File("../supervisor-api/java/")
+val supervisorApiProjectPath: String by settings
+project(":supervisor-api").projectDir = File(supervisorApiProjectPath)
 
 include(":gitpod-protocol")
-project(":gitpod-protocol").projectDir = File("../gitpod-protocol/java/")
+val gitpodProtocolProjectPath: String by settings
+project(":gitpod-protocol").projectDir = File(gitpodProtocolProjectPath)

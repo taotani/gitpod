@@ -10,6 +10,9 @@ packages:
       - "settings.gradle.kts"
     env:
       - JAVA_HOME=/home/gitpod/.sdkman/candidates/java/current
+    deps:
+      - components/gitpod-protocol/java:lib
+      - components/supervisor-api/java:lib
     config:
       commands:
-        - ["./gradlew", "buildPlugin"]
+        - ["./gradlew", "-PsupervisorApiProjectPath=components-supervisor-api-java--lib/", "-PgitpodProtocolProjectPath=components-gitpod-protocol-java--lib/", "buildPlugin"]

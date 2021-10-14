@@ -35,6 +35,8 @@ const loadingIDE = new Promise(resolve => window.addEventListener('DOMContentLoa
 
     document.title = gitpodServiceClient.info.workspace.description;
 
+    console.log("does this work");
+
     if (gitpodServiceClient.info.workspace.type !== 'regular') {
         return;
     }

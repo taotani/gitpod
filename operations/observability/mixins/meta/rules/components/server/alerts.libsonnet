@@ -18,7 +18,8 @@
             },
             annotations: {
               runbook_url: 'https://github.com/gitpod-io/observability/blob/main/runbooks/WebsocketConnectionsNotClosing.md',
-              summary: 'Open websocket connections are not closing for the last 10 minutes and accumulating.'
+              summary: 'Open websocket connections are not closing for the last 10 minutes and accumulating.',
+              description: 'We have accumulated {{ printf "%.2f" $value }} open websocket connections.'
             },
           },
         ],

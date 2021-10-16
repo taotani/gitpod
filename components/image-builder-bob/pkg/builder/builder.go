@@ -331,33 +331,32 @@ func StartBuildkit(socketPath string) (cl *client.Client, teardown func() error,
 	cmd.Stderr = stderr
 	cmd.Stdout = stdout
 	err = cmd.Start()
+	if err != nil {
+		return nil, nil, xerrors.Errorf("cannot start buildkitd: %w", err)
+	}
+
 	defer func() {
 		if err == nil {
 			return
 		}
 
 		if cmd.Process != nil {
-			cmd.Process.Kill()
+			_ = cmd.Process.Kill()
 		}
 
-		stderr.Seek(0, 0)
-		stdout.Seek(0, 0)
-		serr, _ := ioutil.ReadAll(stderr)
-		sout, _ := ioutil.ReadAll(stdout)
 		stderr.Close()
 		stdout.Close()
+
+		serr, _ := ioutil.ReadFile(stderr.Name())
+		sout, _ := ioutil.ReadFile(stdout.Name())
 
 		log.WithField("buildkitd-stderr", string(serr)).WithField("buildkitd-stdout", string(sout)).Error("buildkitd failure")
 	}()
-	if err != nil {
-		return nil, nil, xerrors.Errorf("cannot start buildkitd: %w", err)
-	}
 
 	teardown = func() error {
-		err := cmd.Process.Kill()
 		stdout.Close()
 		stderr.Close()
-		return err
+		return cmd.Process.Kill()
 	}
 	cl, err = connectToBuildkitd(socketPath)
 	if err != nil {

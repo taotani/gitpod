@@ -5,11 +5,12 @@
 package cmd
 
 import (
-	"io/ioutil"
+	"context"
 	"os"
 	"time"
 
 	"github.com/gitpod-io/gitpod/image-builder/bob/pkg/builder"
+	"github.com/moby/buildkit/util/bklog"
 
 	log "github.com/gitpod-io/gitpod/common-go/log"
 	"github.com/spf13/cobra"
@@ -20,7 +21,7 @@ var buildCmd = &cobra.Command{
 	Use:   "build",
 	Short: "Runs the image build and is configured using environment variables (see pkg/builder/config.go for details)",
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Init("bob", "", true, false)
+		log.Init("bob", "", true, true)
 		log := log.WithField("command", "build")
 
 		t0 := time.Now()
@@ -28,16 +29,10 @@ var buildCmd = &cobra.Command{
 			log.Fatal("must run as root")
 		}
 
-		defer func() {
-			time.Sleep(10 * time.Second)
-			content, err := ioutil.ReadFile("/workspace/.gitpod/prebuild-log-0")
-			if err != nil {
-				log.WithError(err).Error("unexpected error reading prebuild log")
-			}
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
 
-			log.WithField("log", string(content)).Info("build log")
-			time.Sleep(5 * time.Minute)
-		}()
+		bklog.WithLogger(ctx, log)
 
 		// give the headless listener some time to attach
 		time.Sleep(1 * time.Second)

@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -97,13 +96,7 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 	if authLayer != "" {
 		_ = os.MkdirAll(filepath.Join(os.Getenv("HOME"), ".docker"), 0644)
 		dockerConfig := filepath.Join(os.Getenv("HOME"), ".docker", "config.json")
-
-		data, err := strconv.Unquote(authLayer)
-		if err != nil {
-			return err
-		}
-
-		_ = os.WriteFile(dockerConfig, []byte(data), 0644)
+		_ = os.WriteFile(dockerConfig, []byte(authLayer), 0644)
 		defer os.Remove(dockerConfig)
 
 		c, _ := ioutil.ReadFile(dockerConfig)

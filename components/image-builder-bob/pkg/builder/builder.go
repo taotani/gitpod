@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"io/ioutil"
-	go_log "log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -95,6 +94,9 @@ func (b *Builder) buildWorkspaceImage(ctx context.Context, cl *client.Client) (e
 }
 
 func buildImage(contextDir, dockerfile, authLayer, source, target string) error {
+	dockerConfig := "/tmp/config.json"
+	defer os.Remove(dockerConfig)
+
 	if authLayer != "" {
 		var data map[string]interface{}
 		err := json.Unmarshal([]byte(authLayer), &data)
@@ -102,22 +104,11 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 			return err
 		}
 
-		err = os.MkdirAll(filepath.Join(os.Getenv("HOME"), ".docker"), 0644)
-		if err != nil {
-			return err
-		}
-
-		dockerConfig := filepath.Join(os.Getenv("HOME"), ".docker", "config.json")
-		defer os.Remove(dockerConfig)
-
 		file, _ := json.MarshalIndent(data, "", " ")
 		err = ioutil.WriteFile(dockerConfig, file, 0644)
 		if err != nil {
 			return err
 		}
-
-		b, _ := ioutil.ReadFile(dockerConfig)
-		go_log.Println(string(b))
 	}
 
 	contextdir := contextDir
@@ -126,11 +117,14 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 	}
 
 	buildctlArgs := []string{
+		"--debug",
 		"build",
 		"--progress=plain",
-		"--output=type=image,name=" + target + ",push=true",
-		"--export-cache=type=inline",
+		"--output=type=image,name=" + target + ",push=true,oci-mediatypes=true,compression=estargz",
+		//"--export-cache=type=inline",
 		"--local=context=" + contextdir,
+		"--export-cache=type=registry,ref=" + target + "-cache",
+		"--import-cache=type=registry,ref=" + target + "-cache",
 	}
 
 	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
@@ -152,6 +146,10 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 	buildctlCmd := exec.Command("buildctl", buildctlArgs...)
 	buildctlCmd.Stderr = os.Stderr
 	buildctlCmd.Stdout = os.Stdout
+
+	env := os.Environ()
+	env = append(env, "DOCKER_CONFIG=/tmp/config.json")
+	buildctlCmd.Env = env
 
 	if err := buildctlCmd.Start(); err != nil {
 		return err

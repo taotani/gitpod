@@ -7,6 +7,7 @@ package builder
 import (
 	"context"
 	"io/ioutil"
+	go_log "log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -100,7 +101,7 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 		defer os.Remove(dockerConfig)
 
 		c, _ := ioutil.ReadFile(dockerConfig)
-		log.Println(string(c))
+		go_log.Println(string(c))
 	}
 
 	contextdir := contextDir
@@ -115,6 +116,7 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 		"--output=type=image,name=" + target + ",push=true",
 		"--export-cache=type=inline",
 		"--local=context=" + contextdir,
+		"--local=dockerfile=" + filepath.Dir(dockerfile),
 	}
 
 	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
@@ -124,7 +126,6 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 		)
 	} else {
 		buildctlArgs = append(buildctlArgs,
-			"--local=dockerfile="+filepath.Dir(dockerfile),
 			"--opt=filename="+filepath.Base(dockerfile),
 		)
 	}

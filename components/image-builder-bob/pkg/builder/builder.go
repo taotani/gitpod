@@ -120,8 +120,7 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 		"--debug",
 		"build",
 		"--progress=plain",
-		"--output=type=image,name=" + target + ",push=true,oci-mediatypes=true,compression=estargz",
-		//"--export-cache=type=inline",
+		"--output=type=image,name=" + target + ",push=true,oci-mediatypes=true", //,compression=estargz",
 		"--local=context=" + contextdir,
 		"--export-cache=type=registry,ref=" + target + "-cache",
 		"--import-cache=type=registry,ref=" + target + "-cache",
@@ -148,7 +147,7 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 	buildctlCmd.Stdout = os.Stdout
 
 	env := os.Environ()
-	env = append(env, "DOCKER_CONFIG=/tmp/config.json")
+	env = append(env, "DOCKER_CONFIG=/tmp")
 	buildctlCmd.Env = env
 
 	if err := buildctlCmd.Start(); err != nil {

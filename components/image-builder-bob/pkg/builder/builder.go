@@ -117,7 +117,7 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 		}
 
 		b, _ := ioutil.ReadFile(dockerConfig)
-		go_log.Println(b)
+		go_log.Println(string(b))
 	}
 
 	contextdir := contextDir

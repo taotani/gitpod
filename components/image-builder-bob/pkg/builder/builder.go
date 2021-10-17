@@ -6,6 +6,7 @@ package builder
 
 import (
 	"context"
+	"encoding/json"
 	"io/ioutil"
 	go_log "log"
 	"os"
@@ -95,13 +96,28 @@ func (b *Builder) buildWorkspaceImage(ctx context.Context, cl *client.Client) (e
 
 func buildImage(contextDir, dockerfile, authLayer, source, target string) error {
 	if authLayer != "" {
-		_ = os.MkdirAll(filepath.Join(os.Getenv("HOME"), ".docker"), 0644)
+		var data map[string]interface{}
+		err := json.Unmarshal([]byte(authLayer), &data)
+		if err != nil {
+			return err
+		}
+
+		err = os.MkdirAll(filepath.Join(os.Getenv("HOME"), ".docker"), 0644)
+		if err != nil {
+			return err
+		}
+
 		dockerConfig := filepath.Join(os.Getenv("HOME"), ".docker", "config.json")
-		_ = os.WriteFile(dockerConfig, []byte(authLayer), 0644)
 		defer os.Remove(dockerConfig)
 
-		c, _ := ioutil.ReadFile(dockerConfig)
-		go_log.Println(string(c))
+		file, _ := json.MarshalIndent(data, "", " ")
+		err = ioutil.WriteFile(dockerConfig, file, 0644)
+		if err != nil {
+			return err
+		}
+
+		b, _ := ioutil.ReadFile(dockerConfig)
+		go_log.Println(b)
 	}
 
 	contextdir := contextDir
@@ -112,20 +128,21 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 	buildctlArgs := []string{
 		"build",
 		"--progress=plain",
-		"--frontend=dockerfile.v0",
 		"--output=type=image,name=" + target + ",push=true",
 		"--export-cache=type=inline",
 		"--local=context=" + contextdir,
-		"--local=dockerfile=" + filepath.Dir(dockerfile),
 	}
 
 	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
 		log.WithError(err).Errorf("dockerfile %v does not exists", dockerfile)
 		buildctlArgs = append(buildctlArgs,
+			"--frontend=gateway.v0",
 			"--opt=source="+source,
 		)
 	} else {
 		buildctlArgs = append(buildctlArgs,
+			"--frontend=dockerfile.v0",
+			"--local=dockerfile="+filepath.Dir(dockerfile),
 			"--opt=filename="+filepath.Base(dockerfile),
 		)
 	}

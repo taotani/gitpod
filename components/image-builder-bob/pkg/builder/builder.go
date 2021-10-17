@@ -114,16 +114,16 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 		"--frontend=dockerfile.v0",
 		"--output=type=image,name=" + target + ",push=true",
 		"--export-cache=type=inline",
+		"--local=context=" + contextdir,
 	}
 
 	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
 		log.WithError(err).Errorf("dockerfile %v does not exists", dockerfile)
 		buildctlArgs = append(buildctlArgs,
-			"--opt source="+source,
+			"--opt=source="+source,
 		)
 	} else {
 		buildctlArgs = append(buildctlArgs,
-			"--local=context="+contextdir,
 			"--local=dockerfile="+filepath.Dir(dockerfile),
 			"--opt=filename="+filepath.Base(dockerfile),
 		)

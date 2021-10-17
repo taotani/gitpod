@@ -677,11 +677,12 @@ func (o *Orchestrator) getAuthFor(inp auth.AllowedAuthFor, refs ...string) (res 
 	if err != nil {
 		return
 	}
-	resb, err := json.Marshal(buildauth)
+	resb, err := json.MarshalIndent(buildauth, "", " ")
 	if err != nil {
 		return
 	}
-	res = string(resb)
+
+	res = base64.StdEncoding.EncodeToString(resb)
 
 	if len(o.builderAuthKey) > 0 {
 		resb, err = encrypt(resb, o.builderAuthKey)
@@ -689,8 +690,7 @@ func (o *Orchestrator) getAuthFor(inp auth.AllowedAuthFor, refs ...string) (res 
 			return
 		}
 
-		// I know this call is really backwards, but the Encode() API is so difficult to use properly.
-		res = base64.RawStdEncoding.EncodeToString(resb)
+		res = base64.StdEncoding.EncodeToString(resb)
 	}
 
 	return

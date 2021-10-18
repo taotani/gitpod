@@ -22,13 +22,13 @@ window.addEventListener('message', relocateListener, false);
 
 let resolveSessionId: (sessionId: string) => void;
 const sessionId = new Promise<string>(resolve => resolveSessionId = resolve);
-const setSessinoIdListener = (event: MessageEvent) => {
+const setSessionIdListener = (event: MessageEvent) => {
     if (event.origin === serverOrigin && event.data.type == '$setSessionId' && event.data.sessionId) {
-        window.removeEventListener('message', setSessinoIdListener);
+        window.removeEventListener('message', setSessionIdListener);
         resolveSessionId(event.data.sessionId);
     }
 };
-window.addEventListener('message', setSessinoIdListener, false);
+window.addEventListener('message', setSessionIdListener, false);
 
 export function load({ gitpodService }: {
     gitpodService: ReturnType<typeof createGitpodService>
@@ -36,6 +36,7 @@ export function load({ gitpodService }: {
     frame: HTMLIFrameElement
     sessionId: Promise<string>
     setState: (state: object) => void
+    setActionLink: (actionLink: string, actionLabel: string) => void
 }> {
     return new Promise(resolve => {
         const frame = document.createElement('iframe');
@@ -56,7 +57,10 @@ export function load({ gitpodService }: {
             const setState = (state: object) => {
                 frameWindow.postMessage({ type: 'setState', state }, serverOrigin);
             }
-            resolve({ frame, sessionId, setState });
+            const setActionLink = (actionLink: string, actionLabel: string) => {
+                frameWindow.postMessage({ type: 'setActionLink', actionLink, actionLabel }, serverOrigin);
+            }
+            resolve({ frame, sessionId, setState, setActionLink });
         };
     });
 }

@@ -27,6 +27,10 @@ export interface StartWorkspaceState {
   workspace?: Workspace;
   hasImageBuildLogs?: boolean;
   error?: StartWorkspaceError;
+  actionLink?: {
+    link: string
+    label: string
+  }
 }
 
 export default class StartWorkspace extends React.Component<StartWorkspaceProps, StartWorkspaceState> {
@@ -46,6 +50,8 @@ export default class StartWorkspace extends React.Component<StartWorkspaceProps,
             const error = { message: event.data.state.ideFrontendFailureCause };
             this.setState({ error });
           }
+        } else if (event.data.type == "setActionLink" && 'actionLink' in event.data && 'actionLabel' in event.data) {
+          this.setState({ actionLink: { link: event.data.actionLink, label: event.data.actionLabel } })
         }
       }
       window.addEventListener('message', setStateEventListener, false);
@@ -269,8 +275,26 @@ export default class StartWorkspace extends React.Component<StartWorkspaceProps,
         if (isHeadless) {
           return <HeadlessWorkspaceView instanceId={this.state.workspaceInstance.id} />;
         }
-        phase = StartPhase.Running;
-        statusMessage = <p className="text-base text-gray-400">Opening IDE …</p>;
+        if (!this.state.actionLink) {
+          phase = StartPhase.Running;
+          statusMessage = <p className="text-base text-gray-400">Opening IDE …</p>;
+        } else {
+          phase = StartPhase.IdeReady;
+          statusMessage = <div>
+            <div className="flex space-x-3 items-center text-left rounded-xl m-auto px-4 h-16 w-72 mt-4 mb-2 bg-gray-100 dark:bg-gray-800">
+              <div className="rounded-full w-3 h-3 text-sm bg-green-500">&nbsp;</div>
+              <div>
+                <p className="text-gray-700 dark:text-gray-200 font-semibold">{this.state.workspaceInstance.workspaceId}</p>
+                <a target="_parent" href={this.state.workspace?.contextURL}><p className="w-56 truncate hover:text-blue-600 dark:hover:text-blue-400" >{this.state.workspace?.contextURL}</p></a>
+              </div>
+            </div>
+            <div className="mt-10 justify-center flex space-x-2">
+              <a target="_blank" href={this.state.actionLink.link}><button>{this.state.actionLink.label}</button></a>
+              <button className="secondary" onClick={() => window.parent.postMessage({ type: 'openBrowserIde' }, '*')}>Open VSCode in Browser</button>
+            </div>
+          </div>;
+        }
+
         break;
 
       // Interrupted is an exceptional state where the container should be running but is temporarily unavailable.

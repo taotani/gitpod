@@ -613,6 +613,8 @@ export class WorkspaceSpec extends jspb.Message {
     setType(value: WorkspaceType): WorkspaceSpec;
     getTimeout(): string;
     setTimeout(value: string): WorkspaceSpec;
+    getDesktopIdeImage(): string;
+    setDesktopIdeImage(value: string): WorkspaceSpec;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): WorkspaceSpec.AsObject;
@@ -633,6 +635,7 @@ export namespace WorkspaceSpec {
         exposedPortsList: Array<PortSpec.AsObject>,
         type: WorkspaceType,
         timeout: string,
+        desktopIdeImage: string,
     }
 }
 
@@ -833,6 +836,8 @@ export class StartWorkspaceSpec extends jspb.Message {
     setTimeout(value: string): StartWorkspaceSpec;
     getAdmission(): AdmissionLevel;
     setAdmission(value: AdmissionLevel): StartWorkspaceSpec;
+    getDesktopIdeImage(): string;
+    setDesktopIdeImage(value: string): StartWorkspaceSpec;
 
     serializeBinary(): Uint8Array;
     toObject(includeInstance?: boolean): StartWorkspaceSpec.AsObject;
@@ -857,6 +862,7 @@ export namespace StartWorkspaceSpec {
         git?: GitSpec.AsObject,
         timeout: string,
         admission: AdmissionLevel,
+        desktopIdeImage: string,
     }
 }
 

@@ -15,12 +15,9 @@ packages:
       - dev/loadgen:app
       - components/local-app-api/typescript-grpcweb:publish
       - components/gitpod-protocol:publish
-      - components/gitpod-protocol/java:lib
       - components/supervisor-api/typescript-grpc:publish
       - components/supervisor-api/typescript-grpcweb:publish
-      - components/supervisor-api/java:lib
       - installer:app
-      - components/ide/jetbrains/backend-plugin:plugin
   - name: docker-versions
     type: docker
     config:
@@ -46,6 +43,8 @@ packages:
       - components/ee/ws-scheduler:docker
       - components/gitpod-db:docker
       - components/ide/code:docker
+      - components/ide/jetbrains/image:intellij
+      - components/ide/jetbrains/image:goland
       - components/ide/theia:docker
       - components/image-builder:docker
       - components/image-builder-mk3:docker

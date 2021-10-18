@@ -39,8 +39,14 @@ type RegisterableRESTService interface {
 	RegisterREST(mux *runtime.ServeMux, grpcEndpoint string) error
 }
 
+type DesktopIDEInfo struct {
+	ActionLink  string `json:"actionLink"`
+	ActionLabel string `json:"actionLabel"`
+}
+
 type ideReadyState struct {
 	ready bool
+	info  *DesktopIDEInfo
 	cond  *sync.Cond
 }
 
@@ -59,29 +65,32 @@ func (service *ideReadyState) Wait() <-chan struct{} {
 }
 
 // Get checks whether IDE is ready
-func (service *ideReadyState) Get() bool {
+func (service *ideReadyState) Get() (bool, *DesktopIDEInfo) {
 	service.cond.L.Lock()
 	ready := service.ready
+	info := service.info
 	service.cond.L.Unlock()
-	return ready
+	return ready, info
 }
 
 // Set updates IDE ready state
-func (service *ideReadyState) Set(ready bool) {
+func (service *ideReadyState) Set(ready bool, info *DesktopIDEInfo) {
 	service.cond.L.Lock()
 	defer service.cond.L.Unlock()
 	if service.ready == ready {
 		return
 	}
 	service.ready = ready
+	service.info = info
 	service.cond.Broadcast()
 }
 
 type statusService struct {
-	ContentState ContentState
-	Ports        *ports.Manager
-	Tasks        *tasksManager
-	ideReady     *ideReadyState
+	ContentState    ContentState
+	Ports           *ports.Manager
+	Tasks           *tasksManager
+	ideReady        *ideReadyState
+	desktopIdeReady *ideReadyState
 
 	api.UnimplementedStatusServiceServer
 }
@@ -102,7 +111,9 @@ func (s *statusService) IDEStatus(ctx context.Context, req *api.IDEStatusRequest
 	if req.Wait {
 		select {
 		case <-s.ideReady.Wait():
-			return &api.IDEStatusResponse{Ok: true}, nil
+			{
+				// do nothing
+			}
 		case <-ctx.Done():
 			if errors.Is(ctx.Err(), context.Canceled) {
 				return nil, status.Error(codes.Canceled, "execution canceled")
@@ -110,10 +121,34 @@ func (s *statusService) IDEStatus(ctx context.Context, req *api.IDEStatusRequest
 
 			return nil, status.Error(codes.DeadlineExceeded, ctx.Err().Error())
 		}
+
+		if s.desktopIdeReady != nil {
+			select {
+			case <-s.desktopIdeReady.Wait():
+				{
+					// do nothing
+				}
+			case <-ctx.Done():
+				if errors.Is(ctx.Err(), context.Canceled) {
+					return nil, status.Error(codes.Canceled, "execution canceled")
+				}
+
+				return nil, status.Error(codes.DeadlineExceeded, ctx.Err().Error())
+			}
+		}
 	}
 
-	ok := s.ideReady.Get()
-	return &api.IDEStatusResponse{Ok: ok}, nil
+	ok, _ := s.ideReady.Get()
+	info := &api.IDEStatusResponse_DesktopIDEInfo{}
+	if s.desktopIdeReady != nil {
+		okR, i := s.desktopIdeReady.Get()
+		if i != nil {
+			info.ActionLink = i.ActionLink
+			info.ActionLabel = i.ActionLabel
+		}
+		ok = ok && okR
+	}
+	return &api.IDEStatusResponse{Ok: ok, DesktopIdeInfo: info}, nil
 }
 
 // ContentStatus provides feedback regarding the workspace content readiness

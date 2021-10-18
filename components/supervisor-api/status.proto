@@ -86,6 +86,13 @@ message IDEStatusRequest {
 }
 message IDEStatusResponse {
     bool ok = 1;
+
+    message DesktopIDEInfo {
+        string action_link = 1;
+        string action_label = 2;
+    }
+
+    DesktopIDEInfo desktop_ide_info = 2;
 }
 
 message ContentStatusRequest {

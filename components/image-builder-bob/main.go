@@ -4,8 +4,16 @@
 
 package main
 
-import "github.com/gitpod-io/gitpod/image-builder/bob/cmd"
+import (
+	"time"
+
+	"github.com/gitpod-io/gitpod/image-builder/bob/cmd"
+)
 
 func main() {
+	defer func() {
+		time.Sleep(2 * time.Minute)
+	}()
+
 	cmd.Execute()
 }

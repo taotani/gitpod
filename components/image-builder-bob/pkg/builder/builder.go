@@ -77,26 +77,25 @@ func (b *Builder) buildBaseLayer(ctx context.Context, cl *client.Client) error {
 		return nil
 	}
 
+	log.Info("building base image")
+	return buildImage(ctx, b.Config.ContextDir, b.Config.Dockerfile, b.Config.BaseLayerAuth, b.Config.BaseRef, b.Config.TargetRef)
+}
+
+func (b *Builder) buildWorkspaceImage(ctx context.Context, cl *client.Client) (err error) {
+	log.Info("building workspace image")
+	return buildImage(ctx, b.Config.ContextDir, b.Config.Dockerfile, b.Config.WorkspaceLayerAuth, b.Config.BaseRef, b.Config.TargetRef)
+}
+
+func buildImage(ctx context.Context, contextDir, dockerfile, authLayer, source, target string) error {
 	log.Info("waiting for build context")
 	waitctx, cancel := context.WithTimeout(ctx, 30*time.Minute)
 	defer cancel()
+
 	err := waitForBuildContext(waitctx)
 	if err != nil {
 		return err
 	}
 
-	log.Info("building base image")
-
-	log.WithField("buildConfig", b.Config).Info("build config")
-	return buildImage(b.Config.ContextDir, b.Config.Dockerfile, b.Config.WorkspaceLayerAuth, b.Config.BaseRef, b.Config.TargetRef)
-}
-
-func (b *Builder) buildWorkspaceImage(ctx context.Context, cl *client.Client) (err error) {
-	log.WithField("buildConfig", b.Config).Info("build config")
-	return buildImage(b.Config.ContextDir, b.Config.Dockerfile, b.Config.WorkspaceLayerAuth, b.Config.BaseRef, b.Config.TargetRef)
-}
-
-func buildImage(contextDir, dockerfile, authLayer, source, target string) error {
 	dockerConfig := "/tmp/config.json"
 	defer os.Remove(dockerConfig)
 
@@ -134,7 +133,6 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 	}
 
 	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
-		log.WithError(err).Errorf("dockerfile %v does not exists", dockerfile)
 		buildctlArgs = append(buildctlArgs,
 			"--frontend=gateway.v0",
 			"--opt=source="+source,
@@ -147,14 +145,16 @@ func buildImage(contextDir, dockerfile, authLayer, source, target string) error 
 		)
 	}
 
-	log.WithField("buildctlArgs", buildctlArgs).Info("build args")
-
 	buildctlCmd := exec.Command("buildctl", buildctlArgs...)
 	buildctlCmd.Stderr = os.Stderr
 	buildctlCmd.Stdout = os.Stdout
 
 	env := os.Environ()
-	env = append(env, "DOCKER_CONFIG=/tmp")
+	env = append(env,
+		"DOCKER_CONFIG=/tmp",
+		"BUILDKIT_DEBUG_PANIC_ON_ERROR=1",
+		"BUILDKIT_DEBUG_FORCE_OVERLAY_DIFF=1",
+	)
 	buildctlCmd.Env = env
 
 	if err := buildctlCmd.Start(); err != nil {
@@ -205,7 +205,7 @@ func StartBuildkit(socketPath string) (cl *client.Client, teardown func() error,
 		return nil, nil, xerrors.Errorf("cannot create buildkitd log file: %w", err)
 	}
 
-	cmd := exec.Command("buildkitd", "--addr="+socketPath, "--oci-worker-net=host", "--root=/workspace/buildkit")
+	cmd := exec.Command("buildkitd", "--debug", "--addr="+socketPath, "--oci-worker-net=host", "--root=/workspace/buildkit")
 	cmd.SysProcAttr = &syscall.SysProcAttr{Credential: &syscall.Credential{Uid: 0, Gid: 0}}
 	cmd.Stderr = stderr
 	cmd.Stdout = stdout

@@ -458,7 +458,7 @@ func (tm *tasksManager) watch(task *task, terminal *terminal.Term) {
 		if err != nil {
 			log.WithError(err).Error("cannot copy from terminal")
 		}
-
+		//
 		elapsed := time.Since(start)
 		if parentElapsed > elapsed {
 			elapsed = parentElapsed

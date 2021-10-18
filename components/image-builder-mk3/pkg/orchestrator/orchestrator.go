@@ -682,7 +682,7 @@ func (o *Orchestrator) getAuthFor(inp auth.AllowedAuthFor, refs ...string) (res 
 		return
 	}
 
-	res = base64.StdEncoding.EncodeToString(resb)
+	res = base64.RawStdEncoding.EncodeToString(resb)
 
 	if len(o.builderAuthKey) > 0 {
 		resb, err = encrypt(resb, o.builderAuthKey)
@@ -690,7 +690,7 @@ func (o *Orchestrator) getAuthFor(inp auth.AllowedAuthFor, refs ...string) (res 
 			return
 		}
 
-		res = base64.StdEncoding.EncodeToString(resb)
+		res = base64.RawStdEncoding.EncodeToString(resb)
 	}
 
 	return

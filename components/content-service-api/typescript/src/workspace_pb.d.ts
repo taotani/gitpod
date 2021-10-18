@@ -97,3 +97,49 @@ export namespace DeleteWorkspaceResponse {
     export type AsObject = {
     }
 }
+
+export class WorkspaceObjectExistsRequest extends jspb.Message {
+    getOwnerId(): string;
+    setOwnerId(value: string): WorkspaceObjectExistsRequest;
+    getWorkspaceId(): string;
+    setWorkspaceId(value: string): WorkspaceObjectExistsRequest;
+    getObject(): string;
+    setObject(value: string): WorkspaceObjectExistsRequest;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): WorkspaceObjectExistsRequest.AsObject;
+    static toObject(includeInstance: boolean, msg: WorkspaceObjectExistsRequest): WorkspaceObjectExistsRequest.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: WorkspaceObjectExistsRequest, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): WorkspaceObjectExistsRequest;
+    static deserializeBinaryFromReader(message: WorkspaceObjectExistsRequest, reader: jspb.BinaryReader): WorkspaceObjectExistsRequest;
+}
+
+export namespace WorkspaceObjectExistsRequest {
+    export type AsObject = {
+        ownerId: string,
+        workspaceId: string,
+        object: string,
+    }
+}
+
+export class WorkspaceObjectExistsResponse extends jspb.Message {
+    getExists(): boolean;
+    setExists(value: boolean): WorkspaceObjectExistsResponse;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): WorkspaceObjectExistsResponse.AsObject;
+    static toObject(includeInstance: boolean, msg: WorkspaceObjectExistsResponse): WorkspaceObjectExistsResponse.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: WorkspaceObjectExistsResponse, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): WorkspaceObjectExistsResponse;
+    static deserializeBinaryFromReader(message: WorkspaceObjectExistsResponse, reader: jspb.BinaryReader): WorkspaceObjectExistsResponse;
+}
+
+export namespace WorkspaceObjectExistsResponse {
+    export type AsObject = {
+        exists: boolean,
+    }
+}

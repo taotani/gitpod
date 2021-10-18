@@ -53,6 +53,28 @@ function deserialize_contentservice_WorkspaceDownloadURLResponse(buffer_arg) {
   return workspace_pb.WorkspaceDownloadURLResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
+function serialize_contentservice_WorkspaceObjectExistsRequest(arg) {
+  if (!(arg instanceof workspace_pb.WorkspaceObjectExistsRequest)) {
+    throw new Error('Expected argument of type contentservice.WorkspaceObjectExistsRequest');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_contentservice_WorkspaceObjectExistsRequest(buffer_arg) {
+  return workspace_pb.WorkspaceObjectExistsRequest.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
+function serialize_contentservice_WorkspaceObjectExistsResponse(arg) {
+  if (!(arg instanceof workspace_pb.WorkspaceObjectExistsResponse)) {
+    throw new Error('Expected argument of type contentservice.WorkspaceObjectExistsResponse');
+  }
+  return Buffer.from(arg.serializeBinary());
+}
+
+function deserialize_contentservice_WorkspaceObjectExistsResponse(buffer_arg) {
+  return workspace_pb.WorkspaceObjectExistsResponse.deserializeBinary(new Uint8Array(buffer_arg));
+}
+
 
 var WorkspaceServiceService = exports.WorkspaceServiceService = {
   // WorkspaceDownloadURL provides a URL from where the content of a workspace can be downloaded from
@@ -78,6 +100,18 @@ deleteWorkspace: {
     requestDeserialize: deserialize_contentservice_DeleteWorkspaceRequest,
     responseSerialize: serialize_contentservice_DeleteWorkspaceResponse,
     responseDeserialize: deserialize_contentservice_DeleteWorkspaceResponse,
+  },
+  // WorkspaceObjectExists checks whether the workspace object exists or not
+workspaceObjectExists: {
+    path: '/contentservice.WorkspaceService/WorkspaceObjectExists',
+    requestStream: false,
+    responseStream: false,
+    requestType: workspace_pb.WorkspaceObjectExistsRequest,
+    responseType: workspace_pb.WorkspaceObjectExistsResponse,
+    requestSerialize: serialize_contentservice_WorkspaceObjectExistsRequest,
+    requestDeserialize: deserialize_contentservice_WorkspaceObjectExistsRequest,
+    responseSerialize: serialize_contentservice_WorkspaceObjectExistsResponse,
+    responseDeserialize: deserialize_contentservice_WorkspaceObjectExistsResponse,
   },
 };
 

@@ -21,4 +21,7 @@ export interface StorageClient {
 
     // getHash produces a hash of the of storage object
     getPluginHash(bucketName: string, objectPath: string): Promise<string>;
+
+
+    existsSnapshot(ownerId: string, workspaceId: string, snapshotUrl: string): Promise<boolean>;
 }

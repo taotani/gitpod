@@ -9,7 +9,7 @@ import { DeleteUserContentRequest, DeleteUserContentResponse } from "@gitpod/con
 import { IDEPluginServiceClient } from '@gitpod/content-service/lib/ideplugin_grpc_pb';
 import { PluginDownloadURLRequest, PluginDownloadURLResponse, PluginHashRequest, PluginHashResponse, PluginUploadURLRequest, PluginUploadURLResponse } from "@gitpod/content-service/lib/ideplugin_pb";
 import { WorkspaceServiceClient } from '@gitpod/content-service/lib/workspace_grpc_pb';
-import { DeleteWorkspaceRequest, DeleteWorkspaceResponse, WorkspaceDownloadURLRequest, WorkspaceDownloadURLResponse } from "@gitpod/content-service/lib/workspace_pb";
+import { DeleteWorkspaceRequest, DeleteWorkspaceResponse, WorkspaceDownloadURLRequest, WorkspaceDownloadURLResponse, WorkspaceObjectExistsRequest, WorkspaceObjectExistsResponse } from "@gitpod/content-service/lib/workspace_pb";
 import { inject, injectable } from "inversify";
 import { StorageClient } from "./storage-client";
 
@@ -118,5 +118,22 @@ export class ContentServiceStorageClient implements StorageClient {
             });
         });
         return response.toObject().hash;
+    }
+
+    public async existsSnapshot(ownerId: string, workspaceId: string, snapshotUrl: string): Promise<boolean> {
+        const response = await new Promise<WorkspaceObjectExistsResponse>((resolve, reject) => {
+            const request = new WorkspaceObjectExistsRequest();
+            request.setOwnerId(ownerId);
+            request.setWorkspaceId(workspaceId);
+            request.setObject(snapshotUrl);
+            this.workspaceServiceClient.workspaceObjectExists(request, (err: any, resp: WorkspaceObjectExistsResponse) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(resp);
+                }
+            });
+        });
+        return response.getExists();
     }
 }

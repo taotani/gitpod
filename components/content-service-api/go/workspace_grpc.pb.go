@@ -26,6 +26,8 @@ type WorkspaceServiceClient interface {
 	WorkspaceDownloadURL(ctx context.Context, in *WorkspaceDownloadURLRequest, opts ...grpc.CallOption) (*WorkspaceDownloadURLResponse, error)
 	// DeleteWorkspace deletes the content of a single workspace
 	DeleteWorkspace(ctx context.Context, in *DeleteWorkspaceRequest, opts ...grpc.CallOption) (*DeleteWorkspaceResponse, error)
+	// WorkspaceObjectExists checks whether the workspace object exists or not
+	WorkspaceObjectExists(ctx context.Context, in *WorkspaceObjectExistsRequest, opts ...grpc.CallOption) (*WorkspaceObjectExistsResponse, error)
 }
 
 type workspaceServiceClient struct {
@@ -54,6 +56,15 @@ func (c *workspaceServiceClient) DeleteWorkspace(ctx context.Context, in *Delete
 	return out, nil
 }
 
+func (c *workspaceServiceClient) WorkspaceObjectExists(ctx context.Context, in *WorkspaceObjectExistsRequest, opts ...grpc.CallOption) (*WorkspaceObjectExistsResponse, error) {
+	out := new(WorkspaceObjectExistsResponse)
+	err := c.cc.Invoke(ctx, "/contentservice.WorkspaceService/WorkspaceObjectExists", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // WorkspaceServiceServer is the server API for WorkspaceService service.
 // All implementations must embed UnimplementedWorkspaceServiceServer
 // for forward compatibility
@@ -62,6 +73,8 @@ type WorkspaceServiceServer interface {
 	WorkspaceDownloadURL(context.Context, *WorkspaceDownloadURLRequest) (*WorkspaceDownloadURLResponse, error)
 	// DeleteWorkspace deletes the content of a single workspace
 	DeleteWorkspace(context.Context, *DeleteWorkspaceRequest) (*DeleteWorkspaceResponse, error)
+	// WorkspaceObjectExists checks whether the workspace object exists or not
+	WorkspaceObjectExists(context.Context, *WorkspaceObjectExistsRequest) (*WorkspaceObjectExistsResponse, error)
 	mustEmbedUnimplementedWorkspaceServiceServer()
 }
 
@@ -74,6 +87,9 @@ func (UnimplementedWorkspaceServiceServer) WorkspaceDownloadURL(context.Context,
 }
 func (UnimplementedWorkspaceServiceServer) DeleteWorkspace(context.Context, *DeleteWorkspaceRequest) (*DeleteWorkspaceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteWorkspace not implemented")
+}
+func (UnimplementedWorkspaceServiceServer) WorkspaceObjectExists(context.Context, *WorkspaceObjectExistsRequest) (*WorkspaceObjectExistsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WorkspaceObjectExists not implemented")
 }
 func (UnimplementedWorkspaceServiceServer) mustEmbedUnimplementedWorkspaceServiceServer() {}
 
@@ -124,6 +140,24 @@ func _WorkspaceService_DeleteWorkspace_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _WorkspaceService_WorkspaceObjectExists_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(WorkspaceObjectExistsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(WorkspaceServiceServer).WorkspaceObjectExists(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/contentservice.WorkspaceService/WorkspaceObjectExists",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(WorkspaceServiceServer).WorkspaceObjectExists(ctx, req.(*WorkspaceObjectExistsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // WorkspaceService_ServiceDesc is the grpc.ServiceDesc for WorkspaceService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -138,6 +172,10 @@ var WorkspaceService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteWorkspace",
 			Handler:    _WorkspaceService_DeleteWorkspace_Handler,
+		},
+		{
+			MethodName: "WorkspaceObjectExists",
+			Handler:    _WorkspaceService_WorkspaceObjectExists_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

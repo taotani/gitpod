@@ -14,6 +14,9 @@ service WorkspaceService {
 
     // DeleteWorkspace deletes the content of a single workspace
     rpc DeleteWorkspace(DeleteWorkspaceRequest) returns (DeleteWorkspaceResponse) {};
+
+    // WorkspaceObjectExists checks whether the workspace object exists or not
+    rpc WorkspaceObjectExists(WorkspaceObjectExistsRequest) returns (WorkspaceObjectExistsResponse) {};
 }
 
 message WorkspaceDownloadURLRequest {
@@ -30,3 +33,12 @@ message DeleteWorkspaceRequest {
     bool include_snapshots = 3;
 }
 message DeleteWorkspaceResponse {}
+
+message WorkspaceObjectExistsRequest {
+    string owner_id = 1;
+    string workspace_id = 2;
+    string object = 3;
+}
+message WorkspaceObjectExistsResponse {
+    bool exists = 1;
+}

@@ -12,7 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gitpod-io/gitpod/common-go/log"
 	"golang.org/x/xerrors"
 )
 
@@ -79,12 +78,10 @@ func GetConfigFromEnv() (*Config, error) {
 			dec := make([]byte, base64.RawStdEncoding.DecodedLen(len(cfg.BaseLayerAuth)))
 			_, err := base64.RawStdEncoding.Decode(dec, []byte(cfg.BaseLayerAuth))
 			if err != nil {
-				log.WithError(err).Error("deserializing base64")
 				return nil, xerrors.Errorf("BOB_BASELAYER_AUTH is not base64 encoded but BOB_AUTH_KEY is present")
 			}
 			cfg.BaseLayerAuth, err = decrypt(dec, authKey)
 			if err != nil {
-				log.WithError(err).Error("decrypting")
 				return nil, xerrors.Errorf("cannot decrypt BOB_BASELAYER_AUTH: %w", err)
 			}
 		}
@@ -92,7 +89,6 @@ func GetConfigFromEnv() (*Config, error) {
 			dec := make([]byte, base64.RawStdEncoding.DecodedLen(len(cfg.WorkspaceLayerAuth)))
 			_, err := base64.RawStdEncoding.Decode(dec, []byte(cfg.WorkspaceLayerAuth))
 			if err != nil {
-				log.WithError(err).Error("deserializing base64")
 				return nil, xerrors.Errorf("BOB_WSLAYER_AUTH is not base64 encoded but BOB_AUTH_KEY is present")
 			}
 			cfg.WorkspaceLayerAuth, err = decrypt(dec, authKey)

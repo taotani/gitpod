@@ -17,13 +17,13 @@ import (
 // proxy for the Code With Me status endpoints that transforms it into the supervisor status format.
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Printf("Usage: %s <port> [<action label>]\n", os.Args[0])
+		fmt.Printf("Usage: %s <port> [<link label>]\n", os.Args[0])
 		os.Exit(1)
 	}
 	port := os.Args[1]
-	actionLabel := "Open JetBrains IDE"
+	label := "Open JetBrains IDE"
 	if len(os.Args) > 2 {
-		actionLabel = os.Args[2]
+		label = os.Args[2]
 	}
 
 	http.HandleFunc("/status", func(w http.ResponseWriter, r *http.Request) {
@@ -68,8 +68,8 @@ func main() {
 			return
 		}
 		response := make(map[string]string)
-		response["actionLink"] = jsonResp.Projects[0].JoinLink
-		response["actionLabel"] = actionLabel
+		response["link"] = jsonResp.Projects[0].JoinLink
+		response["label"] = label
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
 	})

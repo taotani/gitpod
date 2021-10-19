@@ -68,7 +68,7 @@ const toStop = new DisposableCollection();
             }
         })
     ]);
-    const isDesktopIde = ideStatus && ideStatus.desktopIdeInfo && ideStatus.desktopIdeInfo.actionLink;
+    const isDesktopIde = ideStatus && ideStatus.desktop && ideStatus.desktop.link;
     if (!isDesktopIde) {
         toStop.push(ideService.start());
     }
@@ -89,7 +89,7 @@ const toStop = new DisposableCollection();
 
     const supervisorServiceClient = new SupervisorServiceClient(gitpodServiceClient);
 
-    var hideDesktopIde = false;
+    let hideDesktopIde = false;
     const serverOrigin = startUrl.url.origin;
     const hideDesktopIdeEventListener = (event: MessageEvent) => {
         if (event.origin === serverOrigin && event.data.type == 'openBrowserIde') {
@@ -110,10 +110,13 @@ const toStop = new DisposableCollection();
             if (instance.status.phase === 'running') {
                 if (!hideDesktopIde) {
                     const ideStatus = await supervisorServiceClient.ideReady;
-                    const isDesktopIde = ideStatus && ideStatus.desktopIdeInfo && ideStatus.desktopIdeInfo.actionLink;
+                    const isDesktopIde = ideStatus && ideStatus.desktop && ideStatus.desktop.link;
                     if (isDesktopIde) {
-                        loading.setActionLink(ideStatus.desktopIdeInfo.actionLink, ideStatus.desktopIdeInfo.actionLabel || "Open Desktop IDE")
-                        // window.open(ideStatus.desktopIdeInfo.actionLink);
+                        loading.setState({
+                            desktopIdeLink: ideStatus.desktop.link,
+                            desktopIdeLabel: ideStatus.desktop.label || "Open Desktop IDE"
+                        });
+                        // window.open(ideStatus.desktop.link);
                         return loading.frame;
                     }
                 }

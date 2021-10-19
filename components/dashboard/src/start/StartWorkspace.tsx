@@ -27,7 +27,7 @@ export interface StartWorkspaceState {
   workspace?: Workspace;
   hasImageBuildLogs?: boolean;
   error?: StartWorkspaceError;
-  actionLink?: {
+  desktopIde?: {
     link: string
     label: string
   }
@@ -50,8 +50,10 @@ export default class StartWorkspace extends React.Component<StartWorkspaceProps,
             const error = { message: event.data.state.ideFrontendFailureCause };
             this.setState({ error });
           }
-        } else if (event.data.type == "setActionLink" && 'actionLink' in event.data && 'actionLabel' in event.data) {
-          this.setState({ actionLink: { link: event.data.actionLink, label: event.data.actionLabel } })
+          if (event.data.state.desktopIdeLink) {
+            const label = event.data.state.desktopIdeLabel || "Open Desktop IDE";
+            this.setState({ desktopIde: { link: event.data.desktopIdeLink, label } });
+          }
         }
       }
       window.addEventListener('message', setStateEventListener, false);
@@ -275,7 +277,7 @@ export default class StartWorkspace extends React.Component<StartWorkspaceProps,
         if (isHeadless) {
           return <HeadlessWorkspaceView instanceId={this.state.workspaceInstance.id} />;
         }
-        if (!this.state.actionLink) {
+        if (!this.state.desktopIde) {
           phase = StartPhase.Running;
           statusMessage = <p className="text-base text-gray-400">Opening IDE …</p>;
         } else {
@@ -289,8 +291,8 @@ export default class StartWorkspace extends React.Component<StartWorkspaceProps,
               </div>
             </div>
             <div className="mt-10 justify-center flex space-x-2">
-              <a target="_blank" href={this.state.actionLink.link}><button>{this.state.actionLink.label}</button></a>
-              <button className="secondary" onClick={() => window.parent.postMessage({ type: 'openBrowserIde' }, '*')}>Open VSCode in Browser</button>
+              <a target="_blank" href={this.state.desktopIde.link}><button>{this.state.desktopIde.label}</button></a>
+              <button className="secondary" onClick={() => window.parent.postMessage({ type: 'openBrowserIde' }, '*')}>Open VS Code in Browser</button>
             </div>
           </div>;
         }

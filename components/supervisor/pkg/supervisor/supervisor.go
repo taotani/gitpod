@@ -586,8 +586,8 @@ func launchIDE(cfg *Config, ideConfig *IDEConfig, cmd *exec.Cmd, ideStopped chan
 		s = func() *ideStatus { i := statusShouldRun; return &i }()
 
 		go func() {
-			desktopIDEInfo := runIDEReadinessProbe(cfg, ideConfig, ide)
-			ideReady.Set(true, desktopIDEInfo)
+			desktopIDEStatus := runIDEReadinessProbe(cfg, ideConfig, ide)
+			ideReady.Set(true, desktopIDEStatus)
 		}()
 
 		err = cmd.Wait()
@@ -712,7 +712,7 @@ func buildChildProcEnv(cfg *Config, envvars []string) []string {
 	return env
 }
 
-func runIDEReadinessProbe(cfg *Config, ideConfig *IDEConfig, ide IDEKind) (desktopIDEInfo *DesktopIDEInfo) {
+func runIDEReadinessProbe(cfg *Config, ideConfig *IDEConfig, ide IDEKind) (desktopIDEStatus *DesktopIDEStatus) {
 	defer log.WithField("ide", ide.String()).Info("IDE is ready")
 
 	defaultIfEmpty := func(value, defaultValue string) string {
@@ -765,12 +765,12 @@ func runIDEReadinessProbe(cfg *Config, ideConfig *IDEConfig, ide IDEKind) (deskt
 						log.WithField("ide", ide.String()).WithError(err).Infof("Error reading response body from IDE status probe.")
 						break
 					}
-					err = json.Unmarshal(bodyBytes, &desktopIDEInfo)
+					err = json.Unmarshal(bodyBytes, &desktopIDEStatus)
 					if err != nil {
 						log.WithField("ide", ide.String()).WithError(err).WithField("body", bodyBytes).Debugf("Error parsing JSON body from IDE status probe.")
 						break
 					}
-					log.WithField("ide", ide.String()).Infof("IDE status desktopIDEInfo: %s", desktopIDEInfo)
+					log.WithField("ide", ide.String()).Infof("IDE status desktopIDEStatus: %s", desktopIDEStatus)
 				}
 				break
 			}

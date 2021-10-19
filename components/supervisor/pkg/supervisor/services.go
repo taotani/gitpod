@@ -39,14 +39,14 @@ type RegisterableRESTService interface {
 	RegisterREST(mux *runtime.ServeMux, grpcEndpoint string) error
 }
 
-type DesktopIDEInfo struct {
-	ActionLink  string `json:"actionLink"`
-	ActionLabel string `json:"actionLabel"`
+type DesktopIDEStatus struct {
+	Link        string `json:"link"`
+	ActionLabel string `json:"label"`
 }
 
 type ideReadyState struct {
 	ready bool
-	info  *DesktopIDEInfo
+	info  *DesktopIDEStatus
 	cond  *sync.Cond
 }
 
@@ -65,7 +65,7 @@ func (service *ideReadyState) Wait() <-chan struct{} {
 }
 
 // Get checks whether IDE is ready
-func (service *ideReadyState) Get() (bool, *DesktopIDEInfo) {
+func (service *ideReadyState) Get() (bool, *DesktopIDEStatus) {
 	service.cond.L.Lock()
 	ready := service.ready
 	info := service.info
@@ -74,7 +74,7 @@ func (service *ideReadyState) Get() (bool, *DesktopIDEInfo) {
 }
 
 // Set updates IDE ready state
-func (service *ideReadyState) Set(ready bool, info *DesktopIDEInfo) {
+func (service *ideReadyState) Set(ready bool, info *DesktopIDEStatus) {
 	service.cond.L.Lock()
 	defer service.cond.L.Unlock()
 	if service.ready == ready {
@@ -139,16 +139,16 @@ func (s *statusService) IDEStatus(ctx context.Context, req *api.IDEStatusRequest
 	}
 
 	ok, _ := s.ideReady.Get()
-	info := &api.IDEStatusResponse_DesktopIDEInfo{}
+	desktopStatus := &api.IDEStatusResponse_DesktopStatus{}
 	if s.desktopIdeReady != nil {
 		okR, i := s.desktopIdeReady.Get()
 		if i != nil {
-			info.ActionLink = i.ActionLink
-			info.ActionLabel = i.ActionLabel
+			desktopStatus.Link = i.Link
+			desktopStatus.Label = i.ActionLabel
 		}
 		ok = ok && okR
 	}
-	return &api.IDEStatusResponse{Ok: ok, DesktopIdeInfo: info}, nil
+	return &api.IDEStatusResponse{Ok: ok, Desktop: desktopStatus}, nil
 }
 
 // ContentStatus provides feedback regarding the workspace content readiness

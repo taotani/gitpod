@@ -36,7 +36,6 @@ export function load({ gitpodService }: {
     frame: HTMLIFrameElement
     sessionId: Promise<string>
     setState: (state: object) => void
-    setActionLink: (actionLink: string, actionLabel: string) => void
 }> {
     return new Promise(resolve => {
         const frame = document.createElement('iframe');
@@ -57,10 +56,7 @@ export function load({ gitpodService }: {
             const setState = (state: object) => {
                 frameWindow.postMessage({ type: 'setState', state }, serverOrigin);
             }
-            const setActionLink = (actionLink: string, actionLabel: string) => {
-                frameWindow.postMessage({ type: 'setActionLink', actionLink, actionLabel }, serverOrigin);
-            }
-            resolve({ frame, sessionId, setState, setActionLink });
+            resolve({ frame, sessionId, setState });
         };
     });
 }

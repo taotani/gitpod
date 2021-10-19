@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
+	go_log "log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -78,12 +79,26 @@ func (b *Builder) buildBaseLayer(ctx context.Context, cl *client.Client) error {
 	}
 
 	log.Info("building base image")
-	return buildImage(ctx, b.Config.ContextDir, b.Config.Dockerfile, b.Config.BaseLayerAuth, b.Config.BaseRef, b.Config.TargetRef)
+	return buildImage(ctx, b.Config.ContextDir, b.Config.Dockerfile, b.Config.WorkspaceLayerAuth, b.Config.BaseRef, b.Config.TargetRef)
 }
 
 func (b *Builder) buildWorkspaceImage(ctx context.Context, cl *client.Client) (err error) {
 	log.Info("building workspace image")
-	return buildImage(ctx, b.Config.ContextDir, b.Config.Dockerfile, b.Config.WorkspaceLayerAuth, b.Config.BaseRef, b.Config.TargetRef)
+
+	contextDir := b.Config.ContextDir
+	dockerfile := b.Config.Dockerfile
+
+	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
+		contextDir = "/workspace"
+		dockerfile = "Dockerfile"
+
+		err = ioutil.WriteFile(filepath.Join(contextDir, "Dockerfile"), []byte(fmt.Sprintf("FROM %v", b.Config.BaseRef)), 0644)
+		if err != nil {
+			return xerrors.Errorf("unexpected error creating temporal directory: %w", err)
+		}
+	}
+
+	return buildImage(ctx, contextDir, dockerfile, b.Config.WorkspaceLayerAuth, b.Config.BaseRef, b.Config.TargetRef)
 }
 
 func buildImage(ctx context.Context, contextDir, dockerfile, authLayer, source, target string) error {
@@ -103,6 +118,7 @@ func buildImage(ctx context.Context, contextDir, dockerfile, authLayer, source, 
 		configFile := configfile.ConfigFile{
 			AuthConfigs: make(map[string]types.AuthConfig),
 		}
+		go_log.Println(authLayer)
 		err := configFile.LoadFromReader(bytes.NewReader([]byte(fmt.Sprintf(`{"auths": %v }`, authLayer))))
 		if err != nil {
 			return xerrors.Errorf("unexpected error reading registry authentication: %w", err)
@@ -126,23 +142,13 @@ func buildImage(ctx context.Context, contextDir, dockerfile, authLayer, source, 
 		"--debug",
 		"build",
 		"--progress=plain",
-		"--output=type=image,name=" + target + ",push=true,oci-mediatypes=true", //,compression=estargz",
+		"--output=type=image,name=" + target + ",push=true", //,oci-mediatypes=true", //,compression=estargz",
 		"--local=context=" + contextdir,
 		//"--export-cache=type=registry,ref=" + target + "-cache",
 		//"--import-cache=type=registry,ref=" + target + "-cache",
-	}
-
-	if _, err := os.Stat(dockerfile); os.IsNotExist(err) {
-		buildctlArgs = append(buildctlArgs,
-			"--frontend=gateway.v0",
-			"--opt=source="+source,
-		)
-	} else {
-		buildctlArgs = append(buildctlArgs,
-			"--frontend=dockerfile.v0",
-			"--local=dockerfile="+filepath.Dir(dockerfile),
-			"--opt=filename="+filepath.Base(dockerfile),
-		)
+		"--frontend=dockerfile.v0",
+		"--local=dockerfile=" + filepath.Dir(dockerfile),
+		"--opt=filename=" + filepath.Base(dockerfile),
 	}
 
 	buildctlCmd := exec.Command("buildctl", buildctlArgs...)
@@ -150,11 +156,7 @@ func buildImage(ctx context.Context, contextDir, dockerfile, authLayer, source, 
 	buildctlCmd.Stdout = os.Stdout
 
 	env := os.Environ()
-	env = append(env,
-		"DOCKER_CONFIG=/tmp",
-		"BUILDKIT_DEBUG_PANIC_ON_ERROR=1",
-		"BUILDKIT_DEBUG_FORCE_OVERLAY_DIFF=1",
-	)
+	env = append(env, "DOCKER_CONFIG=/tmp")
 	buildctlCmd.Env = env
 
 	if err := buildctlCmd.Start(); err != nil {

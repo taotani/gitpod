@@ -21,8 +21,11 @@ var buildCmd = &cobra.Command{
 	Use:   "build",
 	Short: "Runs the image build and is configured using environment variables (see pkg/builder/config.go for details)",
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Init("bob", "", true, true)
+		log.Init("bob", "", true, false)
 		log := log.WithField("command", "build")
+		defer func() {
+			time.Sleep(2 * time.Minute)
+		}()
 
 		t0 := time.Now()
 		if os.Geteuid() != 0 {

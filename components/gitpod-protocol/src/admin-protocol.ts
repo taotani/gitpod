@@ -94,6 +94,11 @@ export namespace WorkspaceAndInstance {
     }
 }
 
-export interface AdminGetWorkspacesRequest extends AdminGetListRequest<WorkspaceAndInstance> {
-    ownerId?: string
-}
+export type AdminGetWorkspacesRequest = AdminGetListRequest<WorkspaceAndInstance> & AdminGetWorkspacesQuery;
+export type AdminGetWorkspacesQuery = {
+    /** we use this field in case we have a UUIDv4 and don't know whether it's an (old) workspace or instance id */
+    instanceIdOrWorkspaceId?: string;
+    ownerId?: string;
+    workspaceId?: string;
+    instanceId?: string;
+};

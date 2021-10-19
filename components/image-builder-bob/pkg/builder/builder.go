@@ -142,7 +142,7 @@ func buildImage(ctx context.Context, contextDir, dockerfile, authLayer, source, 
 		"--debug",
 		"build",
 		"--progress=plain",
-		"--output=type=image,name=" + target + ",push=true,oci-mediatypes=true", //,compression=estargz",
+		"--output=type=image,name=" + target + ",push=true,oci-mediatypes=true,compression=estargz",
 		"--local=context=" + contextdir,
 		//"--export-cache=type=registry,ref=" + target + "-cache",
 		//"--import-cache=type=registry,ref=" + target + "-cache",
@@ -207,7 +207,12 @@ func StartBuildkit(socketPath string) (cl *client.Client, teardown func() error,
 		return nil, nil, xerrors.Errorf("cannot create buildkitd log file: %w", err)
 	}
 
-	cmd := exec.Command("buildkitd", "--debug", "--addr="+socketPath, "--oci-worker-net=host", "--root=/workspace/buildkit")
+	cmd := exec.Command("buildkitd",
+		"--debug",
+		"--addr="+socketPath,
+		"--oci-worker-net=host", "--oci-worker-snapshotter=stargz",
+		"--root=/workspace/buildkit",
+	)
 	cmd.SysProcAttr = &syscall.SysProcAttr{Credential: &syscall.Credential{Uid: 0, Gid: 0}}
 	cmd.Stderr = stderr
 	cmd.Stdout = stdout
